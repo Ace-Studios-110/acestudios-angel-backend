@@ -11,7 +11,7 @@ import re
 
 router = APIRouter(
     tags=["Angel"],
-    dependencies=[Depends(verify_auth_token)]  # 🔐 Protect all routes globally
+    dependencies=[Depends(verify_auth_token)]
 )
 
 @router.post("/sessions")
