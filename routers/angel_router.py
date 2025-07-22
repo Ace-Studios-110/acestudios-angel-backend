@@ -29,7 +29,7 @@ async def get_sessions(request: Request):
 
 @router.get("/sessions/{session_id}/history")
 async def chat_history(request: Request, session_id: str):
-    # Optional: validate user has access to this session
+
     history = await fetch_chat_history(session_id)
     return {"success": True, "message": "Chat history fetched", "data": history}
 
