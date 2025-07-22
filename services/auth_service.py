@@ -16,8 +16,8 @@ async def send_reset_password_email(email: str):
     supabase.auth.reset_password_for_email(email)
     return {"email": email}
 
-async def refresh_session(refresh_token: str):
-    response = supabase.auth.refresh_session({"refresh_token": refresh_token})
+def refresh_session(refresh_token: str):
+    response = supabase.auth.refresh_session(refresh_token)
     if response.session is None:
         raise Exception("Token refresh failed")
     return response.session

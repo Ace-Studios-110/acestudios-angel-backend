@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from fastapi import HTTPException
 from schemas.auth_schemas import SignUpSchema, SignInSchema, ResetPasswordSchema, RefreshTokenSchema
 from services.auth_service import (
     create_user,
@@ -25,6 +26,13 @@ async def reset_password(user: ResetPasswordSchema):
     return {"success": True, "message": "Reset password email sent", "result": response}
 
 @auth_router.post("/refresh-token")
-async def refresh_token(token: RefreshTokenSchema):
-    session = await refresh_session(token.refresh_token)
-    return {"success": True, "message": "Session refreshed successfully", "result": {"session": session}}
+def refresh_token(token: RefreshTokenSchema):
+    try:
+        session = refresh_session(token.refresh_token)
+        return {
+            "success": True,
+            "message": "Session refreshed successfully",
+            "result": {"session": session}
+        }
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=str(e))

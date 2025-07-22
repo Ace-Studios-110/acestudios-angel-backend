@@ -2,9 +2,9 @@ from fastapi import APIRouter, Request
 from schemas.angel_schemas import ChatRequestSchema, CreateSessionSchema
 from services.session_service import create_session, list_sessions, get_session, patch_session
 from services.chat_service import fetch_chat_history, save_chat_message
-from services.business_plan_gen_service import generate_full_business_plan
+from services.generate_plan_service import generate_full_business_plan, generate_full_roadmap_plan
 from services.angel_service import get_angel_reply
-from utils.progress import parse_tag, TOTALS_BY_PHASE
+from utils.progress import parse_tag, TOTALS_BY_PHASE, smart_trim_history
 from middlewares.auth import verify_auth_token
 from fastapi import Depends
 import re
@@ -52,12 +52,18 @@ async def post_chat(session_id: str, request: Request, payload: ChatRequestSchem
     last_tag = session.get("asked_q")
     tag = parse_tag(assistant_reply)
 
+    print(last_tag, tag)
+
     if last_tag and tag and last_tag != tag:
         session["answered_count"] += 1
 
     if tag:
         session["asked_q"] = tag
         session["current_phase"] = tag.split(".")[0]
+
+        if tag.startswith("BUSINESS_PLAN.") and int(tag.split(".")[1]) >= 9:
+            session["asked_q"] = "ROADMAP.01"
+            session["current_phase"] = "ROADMAP"
 
     # Update session in DB
     await patch_session(session_id, {
@@ -89,9 +95,21 @@ async def post_chat(session_id: str, request: Request, payload: ChatRequestSchem
 
 @router.post("/sessions/{session_id}/generate-plan")
 async def generate_business_plan(request: Request, session_id: str):
-    user_id = request.state.user["id"]
-    result = await generate_full_business_plan(session_id, user_id)
-    return {"success": True, "message": "Business plan generated successfully", "result": result}
-    # try:
-    # except Exception as e:
-    #     raise HTTPException(status_code=500, detail=str(e))
+    history = await fetch_chat_history(session_id)
+    history_trimmed = smart_trim_history(history)  
+    result = await generate_full_business_plan(history_trimmed) 
+    return {
+        "success": True,
+        "message": "Business plan generated successfully",
+        "result": result,
+    }
+
+@router.get("/sessions/{session_id}/roadmap-plan")
+async def generate_roadmap_plan(session_id: str, request: Request):
+    history = await fetch_chat_history(session_id)
+    history_trimmed = smart_trim_history(history)
+    roadmap = await generate_full_roadmap_plan(history_trimmed)
+    return {
+        "success": True,
+        "result": roadmap
+    }
