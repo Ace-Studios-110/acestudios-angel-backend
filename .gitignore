@@ -35,6 +35,10 @@ htmlcov/
 .nox/
 .pytest_cache/
 
+# Environment files
+.env
+.env.*
+
 # SQLite DB or local DB
 *.db
 *.sqlite3
