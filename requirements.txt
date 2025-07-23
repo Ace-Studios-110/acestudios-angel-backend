@@ -6,3 +6,4 @@ openai
 mangum
 gunicorn
 pydantic[email]
+email-validator
