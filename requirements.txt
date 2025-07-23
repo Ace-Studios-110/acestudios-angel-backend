@@ -5,3 +5,4 @@ supabase
 openai
 mangum
 gunicorn
+pydantic[email]
