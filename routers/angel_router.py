@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 from schemas.angel_schemas import ChatRequestSchema, CreateSessionSchema
 from services.session_service import create_session, list_sessions, get_session, patch_session
-from services.chat_service import fetch_chat_history, save_chat_message
+from services.chat_service import fetch_chat_history, save_chat_message, fetch_phase_chat_history
 from services.generate_plan_service import generate_full_business_plan, generate_full_roadmap_plan
 from services.angel_service import get_angel_reply
 from utils.progress import parse_tag, TOTALS_BY_PHASE, smart_trim_history
@@ -112,4 +112,22 @@ async def generate_roadmap_plan(session_id: str, request: Request):
     return {
         "success": True,
         "result": roadmap
+    }
+
+@router.get("/sessions/{session_id}/chat/history")
+async def get_phase_chat_history(
+    session_id: str,
+    request: Request,
+    phase: str,
+    limit: int = 15,
+    offset: int = 0
+):
+    user_id = request.state.user["id"]
+
+    messages = await fetch_phase_chat_history(session_id, phase, offset, limit)
+
+    return {
+        "success": True,
+        "result": messages,
+        "has_more": len(messages) == limit
     }

@@ -27,12 +27,9 @@ async def reset_password(user: ResetPasswordSchema):
 
 @auth_router.post("/refresh-token")
 def refresh_token(token: RefreshTokenSchema):
-    try:
-        session = refresh_session(token.refresh_token)
-        return {
-            "success": True,
-            "message": "Session refreshed successfully",
-            "result": {"session": session}
-        }
-    except Exception as e:
-        raise HTTPException(status_code=401, detail=str(e))
+    session = refresh_session(token.refresh_token)
+    return {
+        "success": True,
+        "message": "Session refreshed successfully",
+        "result": {"session": session}
+    }
